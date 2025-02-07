@@ -193,34 +193,29 @@ class WHICH:
     def assign_ranks(self, column):
         """
         Rank values where lower is better.
-        ✅ Ensures index alignment between self.comparison and ranked Series.
+        ✅ Fixes ValueError by ensuring index alignment.
         """
         if column in self.comparison:
             ranked_series = (
                 self.comparison[column]
                 .rank(ascending=True, method='min')
-                .infer_objects(copy=False)
+                .reindex(self.comparison.index)  # ✅ Ensures index alignment
             )
-            
-            # ✅ Ensure alignment by reindexing
-            self.comparison[column] = ranked_series.reindex(self.comparison.index, fill_value=0)
+            self.comparison[column] = ranked_series.fillna(0)  # ✅ Avoids NaN issues
 
 
     def assign_ranks_reverse(self, column):
         """
         Rank values where higher is better.
-        ✅ Ensures index alignment between self.comparison and ranked Series.
+        ✅ Fixes ValueError by ensuring index alignment.
         """
         if column in self.comparison:
             ranked_series = (
                 self.comparison[column]
                 .rank(ascending=False, method='min')
-                .infer_objects(copy=False)
+                .reindex(self.comparison.index)  # ✅ Ensures index alignment
             )
-            
-            # ✅ Ensure alignment by reindexing
-            self.comparison[column] = ranked_series.reindex(self.comparison.index, fill_value=0)
-
+            self.comparison[column] = ranked_series.fillna(0)  # ✅ Avoids NaN issues
 
     def calculate_totals(self):
         """ Compute total ranking scores across all tests. """
