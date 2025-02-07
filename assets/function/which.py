@@ -1,5 +1,4 @@
 # File: which.py
-
 import requests
 from bs4 import BeautifulSoup
 import yfinance as yf
@@ -50,29 +49,6 @@ def convert_market_cap(market_cap_str):
         except ValueError:
             return None
 
-def get_metrics(self, ticker):
-        """ Scrape key finviz metrics for the given ticker. """
-        url = f"https://finviz.com/quote.ashx?t={ticker}&p=d"
-        html = requests_custom(url)
-        if html is None:
-            print(f"Failed to retrieve HTML for {ticker}")
-            return pd.DataFrame()
-
-        soup = BeautifulSoup(html, 'html.parser')
-        metrics_table = soup.find('table', class_='js-snapshot-table snapshot-table2 screener_snapshot-table-body')
-
-        metrics = []
-        if metrics_table:
-            for row in metrics_table.find_all('tr'):
-                cols = row.find_all('td')
-                if len(cols) % 2 == 0:
-                    for i in range(0, len(cols), 2):
-                        metric_name = cols[i].text.strip()
-                        metric_value = cols[i + 1].text.strip()
-                        metrics.append({'Metric': metric_name, 'Value': metric_value})
-
-        return pd.DataFrame(metrics)
-
 class WHICH:
     """
     A class that:
@@ -107,11 +83,34 @@ class WHICH:
                 symbol_data[symbol] = data
         if symbol_data:
             self.data = pd.concat(symbol_data.values(), axis=1, join='inner')
-            
+
     def _download_metrics(self):
         """ Fetch Finviz metrics for each symbol. """
         for symbol in self.symbols:
-            self.metrics_data[symbol] = self.get_metrics(symbol)
+            self.metrics_data[symbol] = self.get_metrics(symbol)  # ✅ Now correctly calling as a method
+
+    def get_metrics(self, ticker):
+        """ Scrape key finviz metrics for the given ticker. """
+        url = f"https://finviz.com/quote.ashx?t={ticker}&p=d"
+        html = requests_custom(url)
+        if html is None:
+            print(f"Failed to retrieve HTML for {ticker}")
+            return pd.DataFrame()
+
+        soup = BeautifulSoup(html, 'html.parser')
+        metrics_table = soup.find('table', class_='js-snapshot-table snapshot-table2 screener_snapshot-table-body')
+
+        metrics = []
+        if metrics_table:
+            for row in metrics_table.find_all('tr'):
+                cols = row.find_all('td')
+                if len(cols) % 2 == 0:
+                    for i in range(0, len(cols), 2):
+                        metric_name = cols[i].text.strip()
+                        metric_value = cols[i + 1].text.strip()
+                        metrics.append({'Metric': metric_name, 'Value': metric_value})
+
+        return pd.DataFrame(metrics)
 
     # ---------------------------------------------
     # RUN ALL TESTS
