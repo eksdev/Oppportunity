@@ -283,7 +283,7 @@ class WHICH:
                 avg_return = returns.mean()
 
                 # FIX: Ensure valid numeric comparison
-                if pd.notna(avg_return) and avg_return != 0:
+                if avg_return.notna().all() and not (avg_return == 0).all():
                     cvs[symbol] = std_dev / avg_return
                 else:
                     cvs[symbol] = None
