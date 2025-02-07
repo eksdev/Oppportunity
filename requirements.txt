@@ -1,0 +1,8 @@
+dash==2.6.0
+plotly
+pandas
+requests
+beautifulsoup4
+yfinance
+numpy
+gunicorn
