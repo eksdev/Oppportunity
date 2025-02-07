@@ -193,7 +193,7 @@ class WHICH:
     def assign_ranks(self, column):
         """
         Rank values where lower is better.
-        ✅ FIX: Ensures Series index matches self.comparison.index
+        ✅ Ensures index alignment between self.comparison and ranked Series.
         """
         if column in self.comparison:
             ranked_series = (
@@ -201,22 +201,25 @@ class WHICH:
                 .rank(ascending=True, method='min')
                 .infer_objects(copy=False)
             )
-    
-            # ✅ Ensure proper index alignment
-            self.comparison[column] = ranked_series.reindex(self.comparison.index)
+            
+            # ✅ Ensure alignment by reindexing
+            self.comparison[column] = ranked_series.reindex(self.comparison.index, fill_value=0)
 
 
     def assign_ranks_reverse(self, column):
-        """Rank values where higher is better."""
+        """
+        Rank values where higher is better.
+        ✅ Ensures index alignment between self.comparison and ranked Series.
+        """
         if column in self.comparison:
             ranked_series = (
                 self.comparison[column]
                 .rank(ascending=False, method='min')
                 .infer_objects(copy=False)
             )
-    
-            # ✅ Ensure proper index alignment
-            self.comparison[column] = ranked_series.reindex(self.comparison.index)
+            
+            # ✅ Ensure alignment by reindexing
+            self.comparison[column] = ranked_series.reindex(self.comparison.index, fill_value=0)
 
 
     def calculate_totals(self):
