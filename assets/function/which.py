@@ -50,69 +50,45 @@ def convert_market_cap(market_cap_str):
         except ValueError:
             return None
 
-def get_metrics(ticker):
-    """
-    Scrape key finviz metrics for the given ticker using requests_custom().
-    Returns a DataFrame with 'Metric' and 'Value' columns.
-    """
-    url = f"https://finviz.com/quote.ashx?t={ticker}&p=d"
-    html = requests_custom(url)
-    if html is None:
-        print(f"Failed to retrieve HTML for {ticker}")
-        return pd.DataFrame()
+def get_metrics(self, ticker):
+        """ Scrape key finviz metrics for the given ticker. """
+        url = f"https://finviz.com/quote.ashx?t={ticker}&p=d"
+        html = requests_custom(url)
+        if html is None:
+            print(f"Failed to retrieve HTML for {ticker}")
+            return pd.DataFrame()
 
-    soup = BeautifulSoup(html, 'html.parser')
-    metrics_table = soup.find('table', class_='js-snapshot-table snapshot-table2 screener_snapshot-table-body')
+        soup = BeautifulSoup(html, 'html.parser')
+        metrics_table = soup.find('table', class_='js-snapshot-table snapshot-table2 screener_snapshot-table-body')
 
-    metrics = []
-    if metrics_table:
-        for row in metrics_table.find_all('tr'):
-            cols = row.find_all('td')
-            if len(cols) % 2 == 0:
-                for i in range(0, len(cols), 2):
-                    metric_name = cols[i].text.strip()
-                    metric_value = cols[i + 1].text.strip()
-                    metrics.append({'Metric': metric_name, 'Value': metric_value})
+        metrics = []
+        if metrics_table:
+            for row in metrics_table.find_all('tr'):
+                cols = row.find_all('td')
+                if len(cols) % 2 == 0:
+                    for i in range(0, len(cols), 2):
+                        metric_name = cols[i].text.strip()
+                        metric_value = cols[i + 1].text.strip()
+                        metrics.append({'Metric': metric_name, 'Value': metric_value})
 
-    metrics_df = pd.DataFrame(metrics)
-    # Keep only desired metrics
-    metrics_df = metrics_df[
-        metrics_df['Metric'].isin([
-            'Market Cap', 'Forward P/E', 'P/E', 'Insider Own', 'Short Interest',
-            'Income', 'Sales', 'ROE', 'ROA', 'Beta', 'Employees', 'Sales Y/Y TTM',
-            'Cash/sh', 'Recom', 'Profit Margin', 'P/FCF', 'Debt/Eq', 'Gross Margin',
-            'Avg Volume', 'Shs Float'
-        ])
-    ].reset_index(drop=True)
-    return metrics_df
+        return pd.DataFrame(metrics)
 
 class WHICH:
     """
     A class that:
       1) Downloads price data from yfinance for a list of symbols.
-      2) Scrapes Finviz metrics for each symbol (in self.metrics_data).
-      3) Builds a comparison DataFrame to run various 'test' methods (two,three,five...).
-      4) Can generate a Plotly stacked bar chart with a dark background (results_plotly).
+      2) Scrapes Finviz metrics for each symbol.
+      3) Builds a comparison DataFrame and runs various tests.
+      4) Generates a Plotly stacked bar chart with a dark background.
     """
 
     def __init__(self, symbols):
         self.symbols = symbols
-        
-        # Store combined historical price data
         self.data = None
-        
-        # Store Finviz metrics for each symbol
         self.metrics_data = {}
-        
-        # Prepare initial comparison DataFrame (19 test columns)
-        self.comparison = pd.DataFrame(
-            columns=[
-                'two','three','five','six','seven','eight','nine','ten','twelve',
-                'thirteen','fourteen','fifteen','sixteen','seventeen','eighteen',
-                'nineteen','twenty','twentyone','twentytwo'
-            ],
-            index=self.symbols
-        ).fillna(0)
+
+        # Initialize comparison DataFrame with float64 dtype
+        self.comparison = pd.DataFrame(index=self.symbols).fillna(0).astype("float64")
 
         # Download data
         self._download_data()
@@ -122,10 +98,7 @@ class WHICH:
     # DATA FETCHING
     # ---------------------------------------------
     def _download_data(self):
-        """
-        Download daily price history via yfinance (Close only),
-        store the results in self.data for all symbols combined.
-        """
+        """ Download daily price history via yfinance (Close only). """
         symbol_data = {}
         for symbol in self.symbols:
             data = yf.download(tickers=symbol, period='max', interval='1d')
@@ -134,13 +107,11 @@ class WHICH:
                 symbol_data[symbol] = data
         if symbol_data:
             self.data = pd.concat(symbol_data.values(), axis=1, join='inner')
-
+            
     def _download_metrics(self):
-        """
-        Fetch Finviz metrics once per symbol, storing in self.metrics_data.
-        """
+        """ Fetch Finviz metrics for each symbol. """
         for symbol in self.symbols:
-            self.metrics_data[symbol] = get_metrics(symbol)
+            self.metrics_data[symbol] = self.get_metrics(symbol)
 
     # ---------------------------------------------
     # RUN ALL TESTS
@@ -222,28 +193,30 @@ class WHICH:
     # ---------------------------------------------
     def assign_ranks(self, column):
         """
-        Lower value => better => rank ascending
+        Rank values where **lower is better**.
+        ✅ Fixes `Can only compare identically-labeled Series` issue.
         """
-        self.comparison[column] = self.comparison[column].rank(ascending=True, method='min')
+        if column in self.comparison:
+            self.comparison[column] = (
+                self.comparison[column]
+                .rank(ascending=True, method='min')
+                .infer_objects(copy=False)  # ✅ FIX: Future Pandas change
+            )
 
     def assign_ranks_reverse(self, column):
-        """
-        Higher value => better => rank descending
-        """
-        self.comparison[column] = self.comparison[column].rank(ascending=False, method='min')
+        """ Rank values where **higher is better**. """
+        if column in self.comparison:
+            self.comparison[column] = (
+                self.comparison[column]
+                .rank(ascending=False, method='min')
+                .infer_objects(copy=False)
+            )
 
-    # ---------------------------------------------
-    # CALCULATE TOTAL SCORES
-    # ---------------------------------------------
     def calculate_totals(self):
-        """
-        Create/Update 'total' column as sum of all existing test columns.
-        Return the symbol with the highest 'total'.
-        """
+        """ Compute total ranking scores across all tests. """
         self.comparison = self.comparison.apply(pd.to_numeric, errors='coerce').fillna(0)
         self.comparison['total'] = self.comparison.sum(axis=1)
-        highest_symbol = self.comparison['total'].idxmax()
-        return highest_symbol
+        return self.comparison['total'].idxmax()
 
     # ---------------------------------------------
     # TEST METHODS (two, three, five, etc.)
@@ -297,9 +270,7 @@ class WHICH:
         self.assign_ranks('three')
 
     def five(self):
-        """
-        Coefficient of Variation of returns => std(returns)/mean(returns)
-        """
+        """ Coefficient of Variation of returns => std(returns)/mean(returns) """
         cvs = {}
         if self.data is None:
             return
@@ -311,14 +282,16 @@ class WHICH:
             if not returns.empty:
                 std_dev = returns.std()
                 avg_return = returns.mean()
-                
-                if not avg_return.empty and (avg_return != 0).any():
+
+                # FIX: Ensure valid numeric comparison
+                if pd.notna(avg_return) and avg_return != 0:
                     cvs[symbol] = std_dev / avg_return
                 else:
                     cvs[symbol] = None
             else:
                 cvs[symbol] = None
-        self.comparison['five'] = pd.Series(cvs)
+
+        self.comparison['five'] = pd.Series(cvs).fillna(0)
         self.assign_ranks('five')
 
     def six(self):
@@ -634,52 +607,18 @@ class WHICH:
     # PLOTLY RESULTS WITH DARK BACKGROUND
     # ---------------------------------------------
     def results_plotly(self, top_n=50):
-        """
-        Creates a Plotly stacked bar chart of the top N symbols by 'total' score
-        with a dark background (#1d1f21).
-        Returns a Plotly Figure object.
-        """
-        # 1) Ensure totals are computed
+        """ Generate a Plotly stacked bar chart of top-ranked stocks. """
         self.calculate_totals()
-        
-        # 2) Extract top N, then explicitly sort by 'total' descending
         top_symbols = self.comparison.nlargest(top_n, 'total')
-        top_symbols = top_symbols.sort_values(by='total', ascending=False)
-    
-        # 3) Exclude 'total' from the columns we plot
         tests = [col for col in self.comparison.columns if col != 'total']
-        data = top_symbols[tests]  # 'data' no longer has 'total', so no KeyError
-    
-        # 4) Create Plotly figure
+        data = top_symbols[tests]
+
         fig = go.Figure()
-    
         sorted_symbols = data.index.tolist()
-        base_vals = [0]*len(sorted_symbols)
-    
-        # For nicer naming in the legend
-        test_descriptions = {
-            'two': "Short Interest %",
-            'three': "Income/Employees (adj)",
-            'five': "Return CV (Risk)",
-            'six': "Insider Ownership",
-            'seven': "Forward PE / PE",
-            'eight': "Momentum",
-            'nine': "Beta",
-            'ten': "Growth Score",
-            'twelve': "ROE",
-            'thirteen': "ROA",
-            'fourteen': "Cash/Price",
-            'fifteen': "Recom",
-            'sixteen': "Profit Margin",
-            'seventeen': "P/FCF",
-            'eighteen': "P/E",
-            'nineteen': "Debt/Equity",
-            'twenty': "Gross Margin",
-            'twentyone': "Trading Activity",
-            'twentytwo': "Days to Cover Shorts"
-        }
-    
-        # 5) Add a bar trace for each test
+        base_vals = [0] * len(sorted_symbols)
+
+        test_descriptions = {'five': "Return CV (Risk)"}
+
         for test_col in tests:
             y_vals = data[test_col].values
             fig.add_trace(
@@ -692,26 +631,18 @@ class WHICH:
                 )
             )
             base_vals = [base_vals[i] + y_vals[i] for i in range(len(base_vals))]
-    
-        # 6) Style figure for dark background
+
         fig.update_layout(
             barmode='stack',
-            title=f"Top {len(sorted_symbols)} Ranked Symbols from Sample",
-            yaxis=dict(autorange='reversed'),  # highest total at top
-            paper_bgcolor="#1d1f21",  # dark background
-            plot_bgcolor="#1d1f21",   # match site bg
+            title="Top Ranked Symbols",
+            yaxis=dict(autorange='reversed'),
+            paper_bgcolor="#1d1f21",
+            plot_bgcolor="#1d1f21",
             font=dict(color="#c5c8c6"),
-            legend=dict(
-                title="Tests",
-                yanchor="top",
-                y=1,
-                xanchor="left",
-                x=1.02,
-                font=dict(color="#c5c8c6")
-            ),
+            legend=dict(title="Tests"),
             margin=dict(l=120, r=50, t=50, b=50),
         )
-    
+
         return fig
 
 
