@@ -192,24 +192,32 @@ class WHICH:
     # ---------------------------------------------
     def assign_ranks(self, column):
         """
-        Rank values where **lower is better**.
-        ✅ Fixes `Can only compare identically-labeled Series` issue.
+        Rank values where lower is better.
+        ✅ FIX: Ensures Series index matches self.comparison.index
         """
         if column in self.comparison:
-            self.comparison[column] = (
+            ranked_series = (
                 self.comparison[column]
                 .rank(ascending=True, method='min')
-                .infer_objects(copy=False)  # ✅ FIX: Future Pandas change
+                .infer_objects(copy=False)
             )
+    
+            # ✅ Ensure proper index alignment
+            self.comparison[column] = ranked_series.reindex(self.comparison.index)
+
 
     def assign_ranks_reverse(self, column):
-        """ Rank values where **higher is better**. """
+        """Rank values where higher is better."""
         if column in self.comparison:
-            self.comparison[column] = (
+            ranked_series = (
                 self.comparison[column]
                 .rank(ascending=False, method='min')
                 .infer_objects(copy=False)
             )
+    
+            # ✅ Ensure proper index alignment
+            self.comparison[column] = ranked_series.reindex(self.comparison.index)
+
 
     def calculate_totals(self):
         """ Compute total ranking scores across all tests. """
