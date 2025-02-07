@@ -1,0 +1,401 @@
+/* ========================================================= */
+/* ======================= RESET & ROOT ===================== */
+/* ========================================================= */
+
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  /* Make the base font size 16px (default).
+     Adjust if needed for your design. */
+  font-size: 16px;
+  scroll-behavior: smooth;
+}
+
+:root {
+  /* ---------- COLOR PALETTE ---------- */
+  --bg-color: #1d1f21;        /* Dark background */
+  --text-color: #c5c8c6;      /* Standard text (light gray) */
+  --heading-color: #ffffff;   /* Headings in white for contrast */
+  --accent-color: #78c5f9;    /* Bright accent (light blue) */
+
+  /* ---------- FONTS ---------- */
+  --font-code: 'Fira Code', 'Consolas', 'Courier New', monospace;
+  --font-size-base: 1rem;       /* 16px if html base is 16px */
+  --font-size-small: 0.875rem;  /* 14px */
+  --font-size-large: 1.25rem;   /* 20px */
+  
+  /* ---------- SPACING ---------- */
+  --spacing-xs: 0.25rem;  /* 4px */
+  --spacing-sm: 0.5rem;   /* 8px */
+  --spacing-md: 1rem;     /* 16px */
+  --spacing-lg: 2rem;     /* 32px */
+  --spacing-xl: 3rem;     /* 48px */
+  
+  /* ---------- TRANSITION ---------- */
+  --transition-speed: 0.3s;
+}
+
+/* ========================================================= */
+/* ==================== BASE STYLING ======================= */
+/* ========================================================= */
+
+body {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  font-family: var(--font-code);
+  font-size: var(--font-size-base);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  margin: 0;
+  padding: 0;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--heading-color);
+  font-weight: 600;
+  margin-bottom: var(--spacing-sm);
+  font-family: var(--font-code);
+}
+
+p {
+  margin-bottom: var(--spacing-md);
+}
+
+a {
+  color: var(--accent-color);
+  text-decoration: none;
+  transition: color var(--transition-speed);
+}
+a:hover {
+  color: #a9e2ff; /* Slightly brighter hover color */
+}
+
+ul, ol {
+  list-style: none;
+  margin-bottom: var(--spacing-md);
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* ========================================================= */
+/* ================== LAYOUT & CONTAINERS ================== */
+/* ========================================================= */
+/* Container class for the entire Tabs component */
+.dash-tabs {
+  background-color: #1d1f21 !important; /* match your dark bg color */
+  border: none !important;             /* remove any default border */
+}
+
+/* Each Tab (unselected) */
+.dash-tabs .tab {
+  background-color: #1d1f21 !important;
+  color: #c5c8c6 !important;
+  border: none !important;
+  font-family: 'Fira Code', monospace;
+  /* Optional: add a small margin or padding for spacing */
+  padding: 0.75rem 1rem;
+}
+
+/* Hover effect (when you mouse over a tab) */
+.dash-tabs .tab:hover {
+  background-color: #2a2d31 !important;
+  cursor: pointer;
+}
+
+/* The currently selected Tab */
+.dash-tabs .tab--selected {
+  background-color: #2a2d31 !important;
+  color: #ffffff !important;
+  border-bottom: 3px solid #78c5f9 !important; 
+  /* accent color & thicker “underline” highlight */
+}
+
+
+
+.wrapper {
+  width: 90%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--spacing-lg) 0;
+}
+
+/* Updated: .header and .footer now share the same bg as body */
+.header,
+.footer {
+  text-align: center;
+  padding: var(--spacing-md);
+  background-color: var(--bg-color); /* match main background */
+}
+
+.main-content {
+  padding: var(--spacing-md) 0;
+}
+
+/* Simple “card”-like container for sections */
+.card {
+  background-color: #2a2d31;
+  border-radius: 4px;
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+/* ========================================================= */
+/* ====================== NAVIGATION ======================== */
+/* ========================================================= */
+
+/* Updated: .navbar now has the same bg color as body */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: var(--bg-color); /* match main background */
+  padding: var(--spacing-sm) var(--spacing-md);
+}
+
+.navbar a {
+  color: var(--text-color);
+  margin: 0 var(--spacing-sm);
+  text-transform: uppercase;
+  font-size: 0.9rem;
+}
+
+.navbar a:hover {
+  color: var(--accent-color);
+}
+
+/* ========================================================= */
+/* ======================= TYPOGRAPHY ====================== */
+/* ========================================================= */
+
+code,
+pre {
+  font-family: var(--font-code);
+  background-color: #282a2e; 
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: 3px;
+}
+
+/* Code block styling */
+pre {
+  overflow-x: auto;
+  margin-bottom: var(--spacing-md);
+}
+
+/* Headings size adjustments (optional) */
+h1 {
+  font-size: 2rem;
+}
+h2 {
+  font-size: 1.6rem;
+}
+h3 {
+  font-size: 1.3rem;
+}
+
+/* ========================================================= */
+/* ======================== BUTTONS ========================= */
+/* ========================================================= */
+
+.button {
+  display: inline-block;
+  background-color: var(--accent-color);
+  color: #1d1f21;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: 4px;
+  text-transform: uppercase;
+  font-weight: 600;
+  transition: background-color var(--transition-speed),
+              color var(--transition-speed);
+}
+
+.button:hover {
+  background-color: #a9e2ff; 
+  color: #1d1f21;
+}
+
+/* ========================================================= */
+/* =============== KEYNOTE-STYLE ANIMATIONS ================ */
+/* ========================================================= */
+
+/* 1. Magic Move Approximation */
+.magic-move {
+  animation: magicMove 2s ease-in-out forwards;
+}
+@keyframes magicMove {
+  0% {
+    transform: translate(-50px, 0) scale(0.8);
+    opacity: 0;
+  }
+  50% {
+    transform: translate(0, 0) scale(1.05);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+}
+
+/* 2. Motion Path Approximation */
+.motion-path {
+  animation: moveAlongPath 3s linear forwards;
+}
+@keyframes moveAlongPath {
+  0% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(50px, 0) rotate(15deg);
+  }
+  50% {
+    transform: translate(100px, 50px) rotate(-15deg);
+  }
+  75% {
+    transform: translate(150px, 20px) rotate(10deg);
+  }
+  100% {
+    transform: translate(200px, 0) rotate(0deg);
+  }
+}
+
+/* 3. Object Revolve (3D Effect) */
+.object-revolve {
+  perspective: 800px;
+}
+.object-revolve .revolve-item {
+  display: inline-block;
+  transform-style: preserve-3d;
+  animation: revolve 2.5s ease-in-out infinite;
+}
+@keyframes revolve {
+  0% {
+    transform: rotateY(0deg);
+  }
+  50% {
+    transform: rotateY(180deg);
+  }
+  100% {
+    transform: rotateY(360deg);
+  }
+}
+
+/* 4. Line Draw Approximation */
+.line-draw {
+  position: relative;
+  overflow: hidden;
+  animation: drawLine 2s forwards ease-in-out;
+}
+@keyframes drawLine {
+  0% {
+    width: 0;
+    border-right: 2px solid transparent;
+  }
+  100% {
+    width: 100%;
+    border-right: 2px solid currentColor;
+  }
+}
+
+/* 5. Anvil Drop */
+.anvil-drop {
+  animation: anvilDrop 1s forwards cubic-bezier(0.3, 1, 0.3, 1);
+}
+@keyframes anvilDrop {
+  0% {
+    transform: translateY(-200px);
+    opacity: 0;
+  }
+  70% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  85% {
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+
+/* Center the container horizontally */
+.top-image-container {
+  text-align: center;
+  margin-top: 2rem; /* Space from the top */
+}
+
+/* Fade-in animation for the image */
+.fade-in-image {
+  max-width: 400px; /* Restrict the max width (optional) */
+  width: 100%;
+  opacity: 0;       /* Start invisible */
+  animation: fadeIn 2s ease-in forwards; /* 2-second fade */
+}
+
+/* Keyframes for fade-in */
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+  }
+}
+
+
+/* 6. Dissolve (Fade In) */
+.dissolve {
+  animation: fadeIn 1.5s forwards ease;
+}
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* 7. Wipe */
+.wipe {
+  animation: wipeIn 1s forwards ease;
+}
+@keyframes wipeIn {
+  0% {
+    clip-path: inset(0 100% 0 0);
+  }
+  100% {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+/* 8. Pop / Zoom */
+.pop {
+  animation: popIn 0.5s forwards ease-out;
+}
+@keyframes popIn {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  80% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* 9. None (No Animation) */
+.none {
+  /* Intentionally no animation or transition */
+}
