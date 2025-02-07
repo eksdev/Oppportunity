@@ -311,10 +311,13 @@ class WHICH:
             if not returns.empty:
                 std_dev = returns.std()
                 avg_return = returns.mean()
-                if avg_return != 0:
+                
+                if not avg_return.empty and (avg_return != 0).any():
                     cvs[symbol] = std_dev / avg_return
                 else:
                     cvs[symbol] = None
+            else:
+                cvs[symbol] = None
         self.comparison['five'] = pd.Series(cvs)
         self.assign_ranks('five')
 
